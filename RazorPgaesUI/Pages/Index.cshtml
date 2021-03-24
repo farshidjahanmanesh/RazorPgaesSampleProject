@@ -1,0 +1,73 @@
+﻿@page
+@inject Microsoft.AspNetCore.Antiforgery.IAntiforgery Xsrf
+@functions{
+    public string GetAntiXsrfRequestToken()
+    {
+        return Xsrf.GetAndStoreTokens(Model.HttpContext).RequestToken;
+    }
+}
+@model RazorPgaesUI.Pages.IndexModel
+
+<div>
+    <a class="btn btn-success" asp-page="CreateBook" asp-page-handler="Create">ساخت کتاب جدید</a>
+
+</div>
+<div>
+    <table class="table">
+        <tr>
+            <th>شماره</th>
+            <th>نام</th>
+            <th>تاریخ</th>
+            <th>حذف کتاب</th>
+        </tr>
+        @{
+            int count = 1;
+        }
+        @foreach (var item in Model.Books)
+        {
+            <tr id="@item.Id">
+                <td>
+                    @count
+                    @{
+                        count++;
+                    }
+                </td>
+                <td>
+                    @item.Title
+                </td>
+                <td>
+                    @item.CreateAt
+                </td>
+                <td>
+                    <button onclick="del(@item.Id)">Delete</button>
+                </td>
+            </tr>
+        }
+    </table>
+</div>
+@section scripts{
+    <script src="~/lib/axios/axios.js"></script>
+    <script>
+        function del(bId) {
+            var data = {
+                Id: bId
+            };
+            var options = {
+                headers: {
+                    "RequestVerificationToken": '@GetAntiXsrfRequestToken()'
+                }
+            };
+
+            axios.post('/index?handler=Delete', data, options)
+                .then(function (response) {
+                    if (response.data == "success") {
+                        document.getElementById(bId).remove();
+                    }
+                })
+                .catch(function (error) {
+                    console.log(error);
+                });
+        }
+
+    </script>
+}
